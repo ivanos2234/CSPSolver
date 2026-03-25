@@ -1,6 +1,8 @@
 package sk.ukf.solver;
 
 
+import sk.ukf.heuristic.FirstUnassignedHeuristic;
+import sk.ukf.heuristic.VariableHeuristic;
 import sk.ukf.model.CSPProblem;
 import sk.ukf.model.Constraint;
 import sk.ukf.model.Variable;
@@ -10,8 +12,17 @@ import java.util.Map;
 
 public class BacktrackingSolver implements Solver {
 
+    private final VariableHeuristic variableHeuristic;
     private long recursiveCalls;
     private long backtracks;
+
+    public BacktrackingSolver() {
+        this.variableHeuristic = new FirstUnassignedHeuristic();
+    }
+
+    public BacktrackingSolver(VariableHeuristic variableHeuristic) {
+        this.variableHeuristic = variableHeuristic;
+    }
 
     @Override
     public Solution solve(CSPProblem problem) {
@@ -41,7 +52,7 @@ public class BacktrackingSolver implements Solver {
             return isConsistent(problem, assignment);
         }
 
-        Variable unassigned = selectUnassignedVariable(problem, assignment);
+        Variable unassigned = variableHeuristic.selectVariable(problem, assignment);
 
         for (Integer value : unassigned.getDomain()) {
             assignment.put(unassigned, value);
@@ -59,15 +70,6 @@ public class BacktrackingSolver implements Solver {
         return false;
     }
 
-    private Variable selectUnassignedVariable(CSPProblem problem, Map<Variable, Integer> assignment) {
-        for (Variable variable : problem.getVariables()) {
-            if (!assignment.containsKey(variable)) {
-                return variable;
-            }
-        }
-        return null;
-    }
-
     private boolean isConsistent(CSPProblem problem, Map<Variable, Integer> assignment) {
         for (Constraint constraint : problem.getConstraints()) {
             if (!constraint.isSatisfied(assignment)) {
@@ -76,4 +78,5 @@ public class BacktrackingSolver implements Solver {
         }
         return true;
     }
+
 }
