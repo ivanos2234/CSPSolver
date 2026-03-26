@@ -1,5 +1,6 @@
 package sk.ukf.app;
 
+import sk.ukf.heuristic.LCVHeuristic;
 import sk.ukf.heuristic.MRVHeuristic;
 import sk.ukf.model.CSPProblem;
 import sk.ukf.model.SendMoreMoneyFactory;
@@ -15,17 +16,21 @@ public class Main {
         CSPProblem problem = SendMoreMoneyFactory.create();
 
         System.out.println("=== Plain Backtracking ===");
-        Solver plainSolver = new BacktrackingSolver();
-        Solution plainSolution = plainSolver.solve(problem);
-        printSolution(plainSolution);
+        runAndPrint(new BacktrackingSolver(), problem);
 
         System.out.println("\n=== Backtracking + MRV ===");
-        Solver mrvSolver = new BacktrackingSolver(new MRVHeuristic());
-        Solution mrvSolution = mrvSolver.solve(problem);
-        printSolution(mrvSolution);
+        runAndPrint(new BacktrackingSolver(new MRVHeuristic()), problem);
+
+        System.out.println("\n=== Backtracking + LCV ===");
+        runAndPrint(new BacktrackingSolver(new LCVHeuristic()), problem);
+
+        System.out.println("\n=== Backtracking + MRV + LCV ===");
+        runAndPrint(new BacktrackingSolver(new MRVHeuristic(), new LCVHeuristic()), problem);
     }
 
-    private static void printSolution(Solution solution) {
+    private static void runAndPrint(Solver solver, CSPProblem problem) {
+        Solution solution = solver.solve(problem);
+
         System.out.println("Solved: " + solution.isSolved());
         System.out.println("Time (ms): " + solution.getTimeMillis());
         System.out.println("Recursive calls: " + solution.getRecursiveCalls());
