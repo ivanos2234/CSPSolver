@@ -9,9 +9,7 @@ import sk.ukf.model.CSPProblem;
 import sk.ukf.model.Constraint;
 import sk.ukf.model.Variable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BacktrackingSolver implements Solver {
 

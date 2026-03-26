@@ -6,6 +6,7 @@ import sk.ukf.model.CSPProblem;
 import sk.ukf.model.SendMoreMoneyFactory;
 import sk.ukf.model.Variable;
 import sk.ukf.solver.BacktrackingSolver;
+import sk.ukf.solver.ForwardCheckingSolver;
 import sk.ukf.solver.Solution;
 import sk.ukf.solver.Solver;
 
@@ -26,6 +27,12 @@ public class Main {
 
         System.out.println("\n=== Backtracking + MRV + LCV ===");
         runAndPrint(new BacktrackingSolver(new MRVHeuristic(), new LCVHeuristic()), problem);
+
+        System.out.println("\n=== Forward Checking + MRV ===");
+        runAndPrint(new ForwardCheckingSolver(new MRVHeuristic()), problem);
+
+        System.out.println("\n=== Forward Checking + MRV + LCV===");
+        runAndPrint(new ForwardCheckingSolver(new MRVHeuristic(), new LCVHeuristic()), problem);
     }
 
     private static void runAndPrint(Solver solver, CSPProblem problem) {
