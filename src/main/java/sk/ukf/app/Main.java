@@ -22,14 +22,17 @@ public class Main {
         System.out.println("\n=== Backtracking + MRV ===");
         runAndPrint(new BacktrackingSolver(new MRVHeuristic()), problem);
 
-        System.out.println("\n=== Backtracking + LCV ===");
-        runAndPrint(new BacktrackingSolver(new LCVHeuristic()), problem);
+        // System.out.println("\n=== Backtracking + LCV ===");
+        // runAndPrint(new BacktrackingSolver(new LCVHeuristic()), problem);
 
         System.out.println("\n=== Backtracking + MRV + LCV ===");
         runAndPrint(new BacktrackingSolver(new MRVHeuristic(), new LCVHeuristic()), problem);
 
         System.out.println("\n=== Forward Checking + MRV ===");
         runAndPrint(new ForwardCheckingSolver(new MRVHeuristic()), problem);
+
+        // System.out.println("\n=== Forward Checking + LCV ===");
+        // runAndPrint(new ForwardCheckingSolver(new LCVHeuristic()), problem);
 
         System.out.println("\n=== Forward Checking + MRV + LCV===");
         runAndPrint(new ForwardCheckingSolver(new MRVHeuristic(), new LCVHeuristic()), problem);
