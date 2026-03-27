@@ -59,7 +59,11 @@ public class ForwardCheckingSolver implements Solver {
                 backtracks,
                 solved,
                 solutionPath,
-                failedBranches
+                failedBranches,
+                -1,
+                -1,
+                -1,
+                -1
         );
     }
 

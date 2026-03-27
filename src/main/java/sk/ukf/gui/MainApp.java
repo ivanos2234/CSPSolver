@@ -41,6 +41,7 @@ public class MainApp extends Application {
 
     private final Label statsLabel = new Label("No result yet.");
     private final TextArea traceArea = new TextArea();
+    private Label heuristicsInfoLabel;
 
     @Override
     public void start(Stage stage) {
@@ -65,6 +66,12 @@ public class MainApp extends Application {
                 "LCV"
         );
         valueHeuristicCombo.setValue("None");
+
+        heuristicsInfoLabel = new Label("");
+        heuristicsInfoLabel.setWrapText(true);
+
+        solverCombo.setOnAction(e -> updateHeuristicAvailability());
+        updateHeuristicAvailability();
 
         ArrayList<Integer> values = new ArrayList();
         for (int i = 8; i <= 28; i++) {
@@ -139,9 +146,30 @@ public class MainApp extends Application {
         root.setRight(rightPanel);
         root.setPadding(new Insets(10));
 
-        Scene scene = new Scene(root, 950, 550);
+        VBox topBox = new VBox(5, controls, heuristicsInfoLabel);
+        root.setTop(topBox);
+
+        Scene scene = new Scene(root, 950, 600);
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void updateHeuristicAvailability() {
+        String selectedSolver = solverCombo.getValue();
+
+        if (selectedSolver.equals("Jacop")) {
+            variableHeuristicCombo.setDisable(true);
+            valueHeuristicCombo.setDisable(true);
+
+            heuristicsInfoLabel.setText(
+                    "For JaCoP, custom MRV/LCV settings are ignored. JaCoP uses its own internal search strategy."
+            );
+        } else {
+            variableHeuristicCombo.setDisable(false);
+            valueHeuristicCombo.setDisable(false);
+
+            heuristicsInfoLabel.setText("");
+        }
     }
 
     private void solveProblem() {
@@ -161,7 +189,6 @@ public class MainApp extends Application {
                 moreNumbersLabel.setText("+ ----");
                 moneyNumbersLabel.setText(" -----");
                 traceArea.clear();
-                return;
             }
 
             Map<String, Integer> assignment = toNameMap(solution.getAssignment());
@@ -175,12 +202,25 @@ public class MainApp extends Application {
             moneyNumbersLabel.setText(" " + money);
 
             String stats = "";
+
             stats += "Solved: " + solution.isSolved() + "\n";
             stats += "Base: " + base + "\n";
             stats += "Time (ms): " + solution.getTimeMillis() + "\n";
-            stats += "Recursive calls: " + solution.getRecursiveCalls() + "\n";
-            stats += "Backtracks: " + solution.getBacktracks() + "\n";
-            stats += "Failed branches: " + solution.getFailedBranches() + "\n";
+
+            String selectedSolver = solverCombo.getValue();
+
+            if (selectedSolver.equals("Jacop")) {
+                stats += "Nodes: " + solution.getJacopNodes() + "\n";
+                stats += "Decisions: " + solution.getJacopDecisions() + "\n";
+                stats += "Wrong decisions: " + solution.getJacopWrongDecisions() + "\n";
+                stats += "Backtracks: " + solution.getBacktracks() + "\n";
+                stats += "Maximum depth: " + solution.getJacopMaximumDepth() + "\n";
+            } else {
+                stats += "Recursive calls: " + solution.getRecursiveCalls() + "\n";
+                stats += "Backtracks: " + solution.getBacktracks() + "\n";
+                stats += "Failed branches: " + solution.getFailedBranches() + "\n";
+            }
+
             stats += "Equation: " + send + " + " + more + " = " + money;
 
             statsLabel.setText(stats);
@@ -220,7 +260,7 @@ public class MainApp extends Application {
         return switch (solverName) {
             case "Forward Checking" -> new ForwardCheckingSolver(variableHeuristic, valueHeuristic);
             case "AC3-like" -> new AC3LikeSolver(variableHeuristic, valueHeuristic);
-            case "Jacop" -> new JacopSolver();
+            case "Jacop" -> new JacopSolver(baseCombo.getValue());
             default -> new BacktrackingSolver(variableHeuristic, valueHeuristic);
         };
     }

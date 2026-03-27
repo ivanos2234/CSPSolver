@@ -11,50 +11,61 @@ import java.util.*;
 
 public class JacopSolver implements Solver {
 
+    private final int base;
+
+    public JacopSolver(int base) {
+        this.base = base;
+    }
+
     @Override
     public Solution solve(sk.ukf.model.CSPProblem problem) {
         long start = System.currentTimeMillis();
 
         Store store = new Store();
 
+        int b1 = base;
+        int b2 = base * base;
+        int b3 = base * base * base;
+        int b4 = base * base * base * base;
+
         // Písmená
-        IntVar S = new IntVar(store, "S", 1, 9);
-        IntVar E = new IntVar(store, "E", 0, 9);
-        IntVar N = new IntVar(store, "N", 0, 9);
-        IntVar D = new IntVar(store, "D", 0, 9);
-        IntVar M = new IntVar(store, "M", 1, 9);
-        IntVar O = new IntVar(store, "O", 0, 9);
-        IntVar R = new IntVar(store, "R", 0, 9);
-        IntVar Y = new IntVar(store, "Y", 0, 9);
+        IntVar S = new IntVar(store, "S", 1, base - 1);
+        IntVar E = new IntVar(store, "E", 0, base - 1);
+        IntVar N = new IntVar(store, "N", 0, base - 1);
+        IntVar D = new IntVar(store, "D", 0, base - 1);
+        IntVar M = new IntVar(store, "M", 1, base - 1);
+        IntVar O = new IntVar(store, "O", 0, base - 1);
+        IntVar R = new IntVar(store, "R", 0, base - 1);
+        IntVar Y = new IntVar(store, "Y", 0, base - 1);
 
         IntVar[] letters = {S, E, N, D, M, O, R, Y};
 
         // AllDifferent
         store.impose(new Alldifferent(letters));
 
-        // SEND = 1000*S + 100*E + 10*N + D
-        IntVar SEND = new IntVar(store, "SEND", 0, 9999);
+        // SEND = base^3*S + base^2*E + base*N + D
+        IntVar SEND = new IntVar(store, "SEND", 0, b4 - 1);
         store.impose(new LinearInt(
                 new IntVar[]{S, E, N, D, SEND},
-                new int[]{1000, 100, 10, 1, -1},
+                new int[]{b3, b2, b1, 1, -1},
                 "=",
                 0
         ));
 
-        // MORE = 1000*M + 100*O + 10*R + E
-        IntVar MORE = new IntVar(store, "MORE", 0, 9999);
+        // MORE = base^3*M + base^2*O + base*R + E
+        IntVar MORE = new IntVar(store, "MORE", 0, b4 - 1);
         store.impose(new LinearInt(
                 new IntVar[]{M, O, R, E, MORE},
-                new int[]{1000, 100, 10, 1, -1},
+                new int[]{b3, b2, b1, 1, -1},
                 "=",
                 0
         ));
 
-        // MONEY = 10000*M + 1000*O + 100*N + 10*E + Y
-        IntVar MONEY = new IntVar(store, "MONEY", 0, 99999);
+        // MONEY = base^4*M + base^3*O + base^2*N + base*E + Y
+        IntVar MONEY = new IntVar(store, "MONEY", 0, b4 * base - 1);
         store.impose(new LinearInt(
                 new IntVar[]{M, O, N, E, Y, MONEY},
-                new int[]{10000, 1000, 100, 10, 1, -1},
+                new int[]{b4, b3, b2, b1, 1, -1},
                 "=",
                 0
         ));
@@ -80,10 +91,14 @@ public class JacopSolver implements Solver {
                     new HashMap<>(),
                     end - start,
                     0,
-                    0,
+                    search.getBacktracks(),
                     false,
                     new ArrayList<>(),
-                    0
+                    search.getWrongDecisions(),
+                    search.getNodes(),
+                    search.getDecisions(),
+                    search.getWrongDecisions(),
+                    search.getMaximumDepth()
             );
         }
 
@@ -111,10 +126,14 @@ public class JacopSolver implements Solver {
                 assignment,
                 end - start,
                 0,
-                0,
+                search.getBacktracks(),
                 true,
                 solutionPath,
-                0
+                search.getWrongDecisions(),
+                search.getNodes(),
+                search.getDecisions(),
+                search.getWrongDecisions(),
+                search.getMaximumDepth()
         );
     }
 }

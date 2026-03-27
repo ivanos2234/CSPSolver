@@ -61,7 +61,11 @@ public class BacktrackingSolver implements Solver {
                 backtracks,
                 solved,
                 solutionPath,
-                failedBranches
+                failedBranches,
+                -1,
+                -1,
+                -1,
+                -1
         );
     }
 
