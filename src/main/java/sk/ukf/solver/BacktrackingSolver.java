@@ -1,10 +1,7 @@
 package sk.ukf.solver;
 
 
-import sk.ukf.heuristic.DefaultValueHeuristic;
-import sk.ukf.heuristic.FirstUnassignedHeuristic;
-import sk.ukf.heuristic.ValueHeuristic;
-import sk.ukf.heuristic.VariableHeuristic;
+import sk.ukf.heuristic.*;
 import sk.ukf.model.CSPProblem;
 import sk.ukf.model.Constraint;
 import sk.ukf.model.Variable;
@@ -13,29 +10,29 @@ import java.util.*;
 
 public class BacktrackingSolver implements Solver {
 
-    private final VariableHeuristic variableHeuristic;
-    private final ValueHeuristic valueHeuristic;
-
     private long recursiveCalls;
     private long backtracks;
 
+    private final StateVariableHeuristic variableHeuristic;
+    private final StateValueHeuristic valueHeuristic;
+
     public BacktrackingSolver() {
-        this.variableHeuristic = new FirstUnassignedHeuristic();
-        this.valueHeuristic = new DefaultValueHeuristic();
+        this.variableHeuristic = new StateFirstUnassignedHeuristic();
+        this.valueHeuristic = new StateDefaultValueHeuristic();
     }
 
-    public BacktrackingSolver(VariableHeuristic variableHeuristic) {
+    public BacktrackingSolver(StateVariableHeuristic variableHeuristic) {
         this.variableHeuristic = variableHeuristic;
-        this.valueHeuristic = new DefaultValueHeuristic();
+        this.valueHeuristic = new StateDefaultValueHeuristic();
     }
 
-    public BacktrackingSolver(ValueHeuristic valueHeuristic) {
+    public BacktrackingSolver(StateValueHeuristic valueHeuristic) {
         this.valueHeuristic = valueHeuristic;
-        this.variableHeuristic = new FirstUnassignedHeuristic();
+        this.variableHeuristic = new StateFirstUnassignedHeuristic();
     }
 
-    public BacktrackingSolver(VariableHeuristic variableHeuristic,
-                              ValueHeuristic valueHeuristic) {
+    public BacktrackingSolver(StateVariableHeuristic variableHeuristic,
+                              StateValueHeuristic valueHeuristic) {
         this.variableHeuristic = variableHeuristic;
         this.valueHeuristic = valueHeuristic;
     }
@@ -47,13 +44,13 @@ public class BacktrackingSolver implements Solver {
 
         long start = System.currentTimeMillis();
 
-        Map<Variable, Integer> assignment = new HashMap<>();
-        boolean solved = backtrack(problem, assignment);
+        SearchState initialState = createInitialState(problem);
+        boolean solved = backtrack(problem, initialState);
 
         long end = System.currentTimeMillis();
 
         return new Solution(
-                new HashMap<>(assignment),
+                new HashMap<>(initialState.getAssignment()),
                 end - start,
                 recursiveCalls,
                 backtracks,
@@ -61,26 +58,43 @@ public class BacktrackingSolver implements Solver {
         );
     }
 
-    private boolean backtrack(CSPProblem problem, Map<Variable, Integer> assignment) {
-        recursiveCalls++;
+    private SearchState createInitialState(CSPProblem problem) {
+        Map<Variable, Integer> assignment = new HashMap<>();
+        Map<Variable, Set<Integer>> domains = new HashMap<>();
 
-        if (assignment.size() == problem.getVariables().size()) {
-            return isConsistent(problem, assignment);
+        for (Variable variable : problem.getVariables()) {
+            domains.put(variable, new HashSet<>(variable.getDomain()));
         }
 
-        Variable unassigned = variableHeuristic.selectVariable(problem, assignment);
-        List<Integer> orderedValues = valueHeuristic.orderValues(unassigned, problem, assignment);
+        return new SearchState(assignment, domains);
+    }
+
+    private boolean backtrack(CSPProblem problem, SearchState state) {
+        recursiveCalls++;
+
+        if (state.getAssignment().size() == problem.getVariables().size()) {
+            return isConsistent(problem, state.getAssignment());
+        }
+
+        Variable variable = variableHeuristic.selectVariable(problem, state);
+        List<Integer> orderedValues = valueHeuristic.orderValues(variable, problem, state);
 
         for (Integer value : orderedValues) {
-            assignment.put(unassigned, value);
+            if (!state.getCurrentDomains().get(variable).contains(value)) {
+                continue;
+            }
 
-            if (isConsistent(problem, assignment)) {
-                if (backtrack(problem, assignment)) {
+            state.getAssignment().put(variable, value);
+
+            if (isConsistent(problem, state.getAssignment())) {
+                if (backtrack(problem, state)) {
+                    state.getAssignment().clear();
+                    state.getAssignment().putAll(state.getAssignment());
                     return true;
                 }
             }
 
-            assignment.remove(unassigned);
+            state.getAssignment().remove(variable);
             backtracks++;
         }
 
@@ -95,5 +109,4 @@ public class BacktrackingSolver implements Solver {
         }
         return true;
     }
-
 }

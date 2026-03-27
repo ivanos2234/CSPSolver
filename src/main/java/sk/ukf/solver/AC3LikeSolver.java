@@ -7,7 +7,7 @@ import sk.ukf.model.Variable;
 
 import java.util.*;
 
-public class ForwardCheckingSolver implements Solver {
+public class AC3LikeSolver implements Solver {
 
     private long recursiveCalls;
     private long backtracks;
@@ -15,23 +15,23 @@ public class ForwardCheckingSolver implements Solver {
     private final StateVariableHeuristic variableHeuristic;
     private final StateValueHeuristic valueHeuristic;
 
-    public ForwardCheckingSolver() {
+    public AC3LikeSolver() {
         this.variableHeuristic = new StateFirstUnassignedHeuristic();
         this.valueHeuristic = new StateDefaultValueHeuristic();
     }
 
-    public ForwardCheckingSolver(StateVariableHeuristic variableHeuristic) {
+    public AC3LikeSolver(StateVariableHeuristic variableHeuristic) {
         this.variableHeuristic = variableHeuristic;
         this.valueHeuristic = new StateDefaultValueHeuristic();
     }
 
-    public ForwardCheckingSolver(StateValueHeuristic valueHeuristic) {
+    public AC3LikeSolver(StateValueHeuristic valueHeuristic) {
         this.valueHeuristic = valueHeuristic;
         this.variableHeuristic = new StateFirstUnassignedHeuristic();
     }
 
-    public ForwardCheckingSolver(StateVariableHeuristic variableHeuristic,
-                         StateValueHeuristic valueHeuristic) {
+    public AC3LikeSolver(StateVariableHeuristic variableHeuristic,
+                              StateValueHeuristic valueHeuristic) {
         this.variableHeuristic = variableHeuristic;
         this.valueHeuristic = valueHeuristic;
     }
@@ -44,7 +44,7 @@ public class ForwardCheckingSolver implements Solver {
         long start = System.currentTimeMillis();
 
         SearchState initialState = createInitialState(problem);
-        boolean solved = forwardCheckBacktrack(problem, initialState);
+        boolean solved = backtrack(problem, initialState);
 
         long end = System.currentTimeMillis();
 
@@ -68,7 +68,7 @@ public class ForwardCheckingSolver implements Solver {
         return new SearchState(assignment, domains);
     }
 
-    private boolean forwardCheckBacktrack(CSPProblem problem, SearchState state) {
+    private boolean backtrack(CSPProblem problem, SearchState state) {
         recursiveCalls++;
 
         if (state.getAssignment().size() == problem.getVariables().size()) {
@@ -87,6 +87,9 @@ public class ForwardCheckingSolver implements Solver {
             SearchState nextState = state.deepCopy();
             nextState.getAssignment().put(variable, value);
 
+            // System.out.println("Assigning " + variable.getName() + " = " + value);
+            // printDomains(nextState);
+
             Set<Integer> singleton = new HashSet<>();
             singleton.add(value);
             nextState.getCurrentDomains().put(variable, singleton);
@@ -96,14 +99,14 @@ public class ForwardCheckingSolver implements Solver {
                 continue;
             }
 
-            boolean domainsOk = applyForwardChecking(problem, nextState, variable);
+            boolean domainsOk = applyArcConsistencyLike(problem, nextState);
 
             if (!domainsOk) {
                 backtracks++;
                 continue;
             }
 
-            if (forwardCheckBacktrack(problem, nextState)) {
+            if (backtrack(problem, nextState)) {
                 state.getAssignment().clear();
                 state.getAssignment().putAll(nextState.getAssignment());
                 return true;
@@ -115,32 +118,78 @@ public class ForwardCheckingSolver implements Solver {
         return false;
     }
 
-    private boolean applyForwardChecking(CSPProblem problem,
-                                         SearchState state,
-                                         Variable newlyAssigned) {
+    private boolean applyArcConsistencyLike(CSPProblem problem, SearchState state) {
+        boolean changed = true;
+
+        while (changed) {
+            changed = false;
+
+            for (Variable variable : problem.getVariables()) {
+                if (state.getAssignment().containsKey(variable)) {
+                    continue;
+                }
+
+                Set<Integer> currentDomain = state.getCurrentDomains().get(variable);
+                Set<Integer> filteredDomain = new HashSet<>();
+
+                for (Integer value : currentDomain) {
+                    if (hasSupport(problem, state, variable, value)) {
+                        filteredDomain.add(value);
+                    }
+                }
+
+                if (filteredDomain.isEmpty()) {
+
+                    // System.out.println("Domain wipeout for " + variable.getName());
+
+                    return false;
+                }
+
+                if (filteredDomain.size() < currentDomain.size()) {
+
+                    // System.out.println("Domain reduced for " + variable.getName() + ": " + currentDomain + " -> " + filteredDomain);
+
+                    state.getCurrentDomains().put(variable, filteredDomain);
+                    changed = true;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean hasSupport(CSPProblem problem,
+                               SearchState state,
+                               Variable variable,
+                               Integer value) {
+
+        Map<Variable, Integer> tempAssignment = new HashMap<>(state.getAssignment());
+        tempAssignment.put(variable, value);
+
+        if (!isConsistent(problem, tempAssignment)) {
+            return false;
+        }
 
         for (Variable other : problem.getVariables()) {
-            if (state.getAssignment().containsKey(other)) {
+            if (other.equals(variable) || tempAssignment.containsKey(other)) {
                 continue;
             }
 
-            Set<Integer> originalDomain = state.getCurrentDomains().get(other);
-            Set<Integer> filteredDomain = new HashSet<>();
+            boolean foundSupport = false;
 
-            for (Integer value : originalDomain) {
-                Map<Variable, Integer> tempAssignment = new HashMap<>(state.getAssignment());
-                tempAssignment.put(other, value);
+            for (Integer otherValue : state.getCurrentDomains().get(other)) {
+                Map<Variable, Integer> temp2 = new HashMap<>(tempAssignment);
+                temp2.put(other, otherValue);
 
-                if (isConsistent(problem, tempAssignment)) {
-                    filteredDomain.add(value);
+                if (isConsistent(problem, temp2)) {
+                    foundSupport = true;
+                    break;
                 }
             }
 
-            if (filteredDomain.isEmpty()) {
+            if (!foundSupport) {
                 return false;
             }
-
-            state.getCurrentDomains().put(other, filteredDomain);
         }
 
         return true;
@@ -153,5 +202,13 @@ public class ForwardCheckingSolver implements Solver {
             }
         }
         return true;
+    }
+
+    private void printDomains(SearchState state) {
+        System.out.println("Current domains:");
+        for (Map.Entry<Variable, Set<Integer>> entry : state.getCurrentDomains().entrySet()) {
+            System.out.println(entry.getKey().getName() + " -> " + entry.getValue());
+        }
+        System.out.println("--------------------------");
     }
 }

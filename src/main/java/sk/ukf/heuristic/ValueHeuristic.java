@@ -7,7 +7,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface ValueHeuristic {
-    List<Integer> orderValues(Variable variable,
-                              CSPProblem problem,
-                              Map<Variable, Integer> assignment);
+    List<Integer> orderValues(Variable variable, CSPProblem problem, Map<Variable, Integer> assignment);
 }

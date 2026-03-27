@@ -30,10 +30,7 @@ public class MRVHeuristic implements VariableHeuristic {
         return bestVariable;
     }
 
-    // todo make more effective
-    private int countConsistentValues(CSPProblem problem,
-                                      Variable variable,
-                                      Map<Variable, Integer> assignment) {
+    private int countConsistentValues(CSPProblem problem, Variable variable, Map<Variable, Integer> assignment) {
         int count = 0;
 
         for (Integer value : variable.getDomain()) {
