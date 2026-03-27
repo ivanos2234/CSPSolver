@@ -10,8 +10,11 @@ import java.util.*;
 
 public class BacktrackingSolver implements Solver {
 
+    private List<String> solutionPath;
     private long recursiveCalls;
     private long backtracks;
+    private long failedBranches;
+    private Solution solution;
 
     private final StateVariableHeuristic variableHeuristic;
     private final StateValueHeuristic valueHeuristic;
@@ -41,11 +44,13 @@ public class BacktrackingSolver implements Solver {
     public Solution solve(CSPProblem problem) {
         recursiveCalls = 0;
         backtracks = 0;
+        failedBranches = 0;
+        solutionPath = new ArrayList<>();
 
         long start = System.currentTimeMillis();
 
         SearchState initialState = createInitialState(problem);
-        boolean solved = backtrack(problem, initialState);
+        boolean solved = backtrack(problem, initialState, solutionPath);
 
         long end = System.currentTimeMillis();
 
@@ -54,7 +59,9 @@ public class BacktrackingSolver implements Solver {
                 end - start,
                 recursiveCalls,
                 backtracks,
-                solved
+                solved,
+                solutionPath,
+                failedBranches
         );
     }
 
@@ -69,7 +76,7 @@ public class BacktrackingSolver implements Solver {
         return new SearchState(assignment, domains);
     }
 
-    private boolean backtrack(CSPProblem problem, SearchState state) {
+    private boolean backtrack(CSPProblem problem, SearchState state, List<String> currentPath) {
         recursiveCalls++;
 
         if (state.getAssignment().size() == problem.getVariables().size()) {
@@ -85,19 +92,21 @@ public class BacktrackingSolver implements Solver {
             }
 
             state.getAssignment().put(variable, value);
+            currentPath.add(variable.getName() + " = " + value);
 
             if (isConsistent(problem, state.getAssignment())) {
-                if (backtrack(problem, state)) {
-                    state.getAssignment().clear();
+                if (backtrack(problem, state, solutionPath)) {
                     state.getAssignment().putAll(state.getAssignment());
                     return true;
                 }
             }
 
             state.getAssignment().remove(variable);
-            backtracks++;
+            currentPath.removeLast();
+            failedBranches++;
         }
 
+        backtracks++;
         return false;
     }
 

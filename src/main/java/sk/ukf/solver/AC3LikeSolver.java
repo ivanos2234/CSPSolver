@@ -9,7 +9,9 @@ import java.util.*;
 
 public class AC3LikeSolver implements Solver {
 
+    private List<String> solutionPath;
     private long recursiveCalls;
+    private long failedBranches;
     private long backtracks;
 
     private final StateVariableHeuristic variableHeuristic;
@@ -40,11 +42,13 @@ public class AC3LikeSolver implements Solver {
     public Solution solve(CSPProblem problem) {
         recursiveCalls = 0;
         backtracks = 0;
+        failedBranches = 0;
+        solutionPath = new ArrayList<>();
 
         long start = System.currentTimeMillis();
 
         SearchState initialState = createInitialState(problem);
-        boolean solved = backtrack(problem, initialState);
+        boolean solved = backtrack(problem, initialState, solutionPath);
 
         long end = System.currentTimeMillis();
 
@@ -53,7 +57,9 @@ public class AC3LikeSolver implements Solver {
                 end - start,
                 recursiveCalls,
                 backtracks,
-                solved
+                solved,
+                solutionPath, 
+                failedBranches
         );
     }
 
@@ -68,7 +74,7 @@ public class AC3LikeSolver implements Solver {
         return new SearchState(assignment, domains);
     }
 
-    private boolean backtrack(CSPProblem problem, SearchState state) {
+    private boolean backtrack(CSPProblem problem, SearchState state, List<String> currentPath) {
         recursiveCalls++;
 
         if (state.getAssignment().size() == problem.getVariables().size()) {
@@ -86,6 +92,7 @@ public class AC3LikeSolver implements Solver {
 
             SearchState nextState = state.deepCopy();
             nextState.getAssignment().put(variable, value);
+            currentPath.add(variable.getName() + " = " + value);
 
             // System.out.println("Assigning " + variable.getName() + " = " + value);
             // printDomains(nextState);
@@ -95,26 +102,30 @@ public class AC3LikeSolver implements Solver {
             nextState.getCurrentDomains().put(variable, singleton);
 
             if (!isConsistent(problem, nextState.getAssignment())) {
-                backtracks++;
+                currentPath.removeLast();
+                failedBranches++;
                 continue;
             }
 
             boolean domainsOk = applyArcConsistencyLike(problem, nextState);
 
             if (!domainsOk) {
-                backtracks++;
+                currentPath.removeLast();
+                failedBranches++;
                 continue;
             }
 
-            if (backtrack(problem, nextState)) {
+            if (backtrack(problem, nextState, solutionPath)) {
                 state.getAssignment().clear();
                 state.getAssignment().putAll(nextState.getAssignment());
                 return true;
             }
 
-            backtracks++;
+            currentPath.removeLast();
+            failedBranches++;
         }
 
+        backtracks++;
         return false;
     }
 

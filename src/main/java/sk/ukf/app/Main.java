@@ -56,6 +56,9 @@ public class Main {
         System.out.println("Time (ms): " + solution.getTimeMillis());
         System.out.println("Recursive calls: " + solution.getRecursiveCalls());
         System.out.println("Backtracks: " + solution.getBacktracks());
+        System.out.println("Failed Branches: " + solution.getFailedBranches());
+        System.out.println("Solution Path: " + solution.getSolutionPath());
+        System.out.println();
 
         for (Map.Entry<Variable, Integer> entry : solution.getAssignment().entrySet()) {
             System.out.println(entry.getKey().getName() + " = " + entry.getValue());

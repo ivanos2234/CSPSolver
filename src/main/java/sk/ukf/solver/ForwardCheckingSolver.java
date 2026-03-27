@@ -9,8 +9,10 @@ import java.util.*;
 
 public class ForwardCheckingSolver implements Solver {
 
+    private List<String> solutionPath;
     private long recursiveCalls;
     private long backtracks;
+    private long failedBranches;
 
     private final StateVariableHeuristic variableHeuristic;
     private final StateValueHeuristic valueHeuristic;
@@ -40,11 +42,13 @@ public class ForwardCheckingSolver implements Solver {
     public Solution solve(CSPProblem problem) {
         recursiveCalls = 0;
         backtracks = 0;
+        failedBranches = 0;
+        solutionPath = new ArrayList<>();
 
         long start = System.currentTimeMillis();
 
         SearchState initialState = createInitialState(problem);
-        boolean solved = forwardCheckBacktrack(problem, initialState);
+        boolean solved = forwardCheckBacktrack(problem, initialState, solutionPath);
 
         long end = System.currentTimeMillis();
 
@@ -53,7 +57,9 @@ public class ForwardCheckingSolver implements Solver {
                 end - start,
                 recursiveCalls,
                 backtracks,
-                solved
+                solved,
+                solutionPath,
+                failedBranches
         );
     }
 
@@ -68,7 +74,7 @@ public class ForwardCheckingSolver implements Solver {
         return new SearchState(assignment, domains);
     }
 
-    private boolean forwardCheckBacktrack(CSPProblem problem, SearchState state) {
+    private boolean forwardCheckBacktrack(CSPProblem problem, SearchState state, List<String> currentPath) {
         recursiveCalls++;
 
         if (state.getAssignment().size() == problem.getVariables().size()) {
@@ -86,32 +92,37 @@ public class ForwardCheckingSolver implements Solver {
 
             SearchState nextState = state.deepCopy();
             nextState.getAssignment().put(variable, value);
+            currentPath.add(variable.getName() + " = " + value);
 
             Set<Integer> singleton = new HashSet<>();
             singleton.add(value);
             nextState.getCurrentDomains().put(variable, singleton);
 
             if (!isConsistent(problem, nextState.getAssignment())) {
-                backtracks++;
+                currentPath.removeLast();
+                failedBranches++;
                 continue;
             }
 
             boolean domainsOk = applyForwardChecking(problem, nextState, variable);
 
             if (!domainsOk) {
-                backtracks++;
+                currentPath.removeLast();
+                failedBranches++;
                 continue;
             }
 
-            if (forwardCheckBacktrack(problem, nextState)) {
+            if (forwardCheckBacktrack(problem, nextState, solutionPath)) {
                 state.getAssignment().clear();
                 state.getAssignment().putAll(nextState.getAssignment());
                 return true;
             }
 
-            backtracks++;
+            currentPath.removeLast();
+            failedBranches++;
         }
 
+        backtracks++;
         return false;
     }
 
