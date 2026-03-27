@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
-        CSPProblem problem = SendMoreMoneyFactory.create();
+        CSPProblem problem = SendMoreMoneyFactory.create(10);
 
         System.out.println("=== Plain Backtracking ===");
         runAndPrint(new BacktrackingSolver(), problem);

@@ -1,6 +1,7 @@
 module sk.ukf.gui {
     requires javafx.controls;
     requires javafx.fxml;
+    requires jacop;
 
 
     opens sk.ukf.gui to javafx.fxml;

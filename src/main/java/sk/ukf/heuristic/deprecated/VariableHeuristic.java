@@ -1,4 +1,4 @@
-package sk.ukf.heuristic;
+package sk.ukf.heuristic.deprecated;
 
 import sk.ukf.model.CSPProblem;
 import sk.ukf.model.Variable;

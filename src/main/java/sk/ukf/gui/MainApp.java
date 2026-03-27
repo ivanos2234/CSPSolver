@@ -9,11 +9,7 @@ import sk.ukf.heuristic.StateVariableHeuristic;
 import sk.ukf.model.CSPProblem;
 import sk.ukf.model.SendMoreMoneyFactory;
 import sk.ukf.model.Variable;
-import sk.ukf.solver.AC3LikeSolver;
-import sk.ukf.solver.BacktrackingSolver;
-import sk.ukf.solver.ForwardCheckingSolver;
-import sk.ukf.solver.Solution;
-import sk.ukf.solver.Solver;
+import sk.ukf.solver.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,6 +19,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -31,6 +28,7 @@ public class MainApp extends Application {
     private final ComboBox<String> solverCombo = new ComboBox<>();
     private final ComboBox<String> variableHeuristicCombo = new ComboBox<>();
     private final ComboBox<String> valueHeuristicCombo = new ComboBox<>();
+    private final ComboBox<Integer> baseCombo = new ComboBox<>();
 
     private final Label sendLettersLabel = new Label("  SEND");
     private final Label moreLettersLabel = new Label("+ MORE");
@@ -51,7 +49,8 @@ public class MainApp extends Application {
         solverCombo.getItems().addAll(
                 "Plain Backtracking",
                 "Forward Checking",
-                "AC3-like"
+                "AC3-like",
+                "Jacop"
         );
         solverCombo.setValue("Plain Backtracking");
 
@@ -67,6 +66,13 @@ public class MainApp extends Application {
         );
         valueHeuristicCombo.setValue("None");
 
+        ArrayList<Integer> values = new ArrayList();
+        for (int i = 8; i <= 28; i++) {
+            values.add(i);
+        }
+        baseCombo.getItems().addAll(values);
+        baseCombo.setValue(10);
+
         Button solveButton = new Button("Solve");
         solveButton.setOnAction(e -> solveProblem());
 
@@ -77,6 +83,7 @@ public class MainApp extends Application {
                 new Label("Solver:"), solverCombo,
                 new Label("Variable heuristic:"), variableHeuristicCombo,
                 new Label("Value heuristic:"), valueHeuristicCombo,
+                new Label("Base:"), baseCombo,
                 solveButton,
                 clearButton
         );
@@ -139,7 +146,8 @@ public class MainApp extends Application {
 
     private void solveProblem() {
         try {
-            CSPProblem problem = SendMoreMoneyFactory.create();
+            int base = baseCombo.getValue();
+            CSPProblem problem = SendMoreMoneyFactory.create(base);
 
             StateVariableHeuristic variableHeuristic = createVariableHeuristic();
             StateValueHeuristic valueHeuristic = createValueHeuristic();
@@ -168,6 +176,7 @@ public class MainApp extends Application {
 
             String stats = "";
             stats += "Solved: " + solution.isSolved() + "\n";
+            stats += "Base: " + base + "\n";
             stats += "Time (ms): " + solution.getTimeMillis() + "\n";
             stats += "Recursive calls: " + solution.getRecursiveCalls() + "\n";
             stats += "Backtracks: " + solution.getBacktracks() + "\n";
@@ -211,6 +220,7 @@ public class MainApp extends Application {
         return switch (solverName) {
             case "Forward Checking" -> new ForwardCheckingSolver(variableHeuristic, valueHeuristic);
             case "AC3-like" -> new AC3LikeSolver(variableHeuristic, valueHeuristic);
+            case "Jacop" -> new JacopSolver();
             default -> new BacktrackingSolver(variableHeuristic, valueHeuristic);
         };
     }
@@ -240,14 +250,25 @@ public class MainApp extends Application {
     private String buildWord(String word, Map<String, Integer> assignment) {
         String res = "";
         for (char ch : word.toCharArray()) {
-            Integer value = assignment.get(String.valueOf(ch));
-            if (value != null) {
-                res += value;
-            } else  {
-                res += "-";
-            }
+            String letter = String.valueOf(ch);
+            Integer value = assignment.get(letter);
+            res += digitToSymbol(value);
+
         }
         return res;
+    }
+
+    private String digitToSymbol(Integer value) {
+        if (value == null) {
+            return "-";
+        }
+
+        if (value >= 0 && value <= 9) {
+            return String.valueOf(value);
+        }
+
+        char letter = (char) ('A' + (value - 10));
+        return String.valueOf(letter);
     }
 
 }

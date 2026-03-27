@@ -9,17 +9,20 @@ public class ColumnSumConstraint implements Constraint {
     private final Variable carryIn;
     private final Variable result;
     private final Variable carryOut;
+    private int base;
 
     public ColumnSumConstraint(Variable left1,
                                Variable left2,
                                Variable carryIn,
                                Variable result,
-                               Variable carryOut) {
+                               Variable carryOut,
+                               int base) {
         this.left1 = left1;
         this.left2 = left2;
         this.carryIn = carryIn;
         this.result = result;
         this.carryOut = carryOut;
+        this.base = base;
     }
 
     @Override
@@ -38,6 +41,6 @@ public class ColumnSumConstraint implements Constraint {
         int r = assignment.get(result);
         int cout = assignment.get(carryOut);
 
-        return a + b + cin == r + 10 * cout;
+        return a + b + cin == r + base * cout;
     }
 }
