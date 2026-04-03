@@ -98,9 +98,6 @@ public class AC3LikeSolver implements Solver {
             nextState.getAssignment().put(variable, value);
             currentPath.add(variable.getName() + " = " + value);
 
-            // System.out.println("Assigning " + variable.getName() + " = " + value);
-            // printDomains(nextState);
-
             Set<Integer> singleton = new HashSet<>();
             singleton.add(value);
             nextState.getCurrentDomains().put(variable, singleton);
@@ -154,16 +151,10 @@ public class AC3LikeSolver implements Solver {
                 }
 
                 if (filteredDomain.isEmpty()) {
-
-                    // System.out.println("Domain wipeout for " + variable.getName());
-
                     return false;
                 }
 
                 if (filteredDomain.size() < currentDomain.size()) {
-
-                    // System.out.println("Domain reduced for " + variable.getName() + ": " + currentDomain + " -> " + filteredDomain);
-
                     state.getCurrentDomains().put(variable, filteredDomain);
                     changed = true;
                 }
@@ -217,13 +208,5 @@ public class AC3LikeSolver implements Solver {
             }
         }
         return true;
-    }
-
-    private void printDomains(SearchState state) {
-        System.out.println("Current domains:");
-        for (Map.Entry<Variable, Set<Integer>> entry : state.getCurrentDomains().entrySet()) {
-            System.out.println(entry.getKey().getName() + " -> " + entry.getValue());
-        }
-        System.out.println("--------------------------");
     }
 }

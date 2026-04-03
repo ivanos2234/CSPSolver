@@ -29,7 +29,6 @@ public class StateLCVHeuristic implements StateValueHeuristic {
                            SearchState state) {
 
         SearchState tempState = state.deepCopy();
-
         tempState.getAssignment().put(variable, value);
 
         Set<Integer> singleton = new HashSet<>();

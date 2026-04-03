@@ -108,7 +108,7 @@ public class ForwardCheckingSolver implements Solver {
                 continue;
             }
 
-            boolean domainsOk = applyForwardChecking(problem, nextState, variable);
+            boolean domainsOk = applyForwardChecking(problem, nextState);
 
             if (!domainsOk) {
                 currentPath.removeLast();
@@ -130,10 +130,7 @@ public class ForwardCheckingSolver implements Solver {
         return false;
     }
 
-    private boolean applyForwardChecking(CSPProblem problem,
-                                         SearchState state,
-                                         Variable newlyAssigned) {
-
+    private boolean applyForwardChecking(CSPProblem problem, SearchState state) {
         for (Variable other : problem.getVariables()) {
             if (state.getAssignment().containsKey(other)) {
                 continue;

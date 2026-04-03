@@ -2,6 +2,7 @@ package sk.ukf.app;
 
 import sk.ukf.heuristic.*;
 import sk.ukf.model.CSPProblem;
+import sk.ukf.model.CrossRoadsDangerFactory;
 import sk.ukf.model.SendMoreMoneyFactory;
 import sk.ukf.model.Variable;
 import sk.ukf.solver.*;
@@ -18,8 +19,8 @@ public class Main {
         System.out.println("\n=== Backtracking + MRV ===");
         runAndPrint(new BacktrackingSolver(new StateMRVHeuristic()), problem);
 
-        // System.out.println("\n=== Backtracking + LCV ===");
-        // runAndPrint(new BacktrackingSolver(new StateLCVHeuristic()), problem);
+        System.out.println("\n=== Backtracking + LCV ===");
+        runAndPrint(new BacktrackingSolver(new StateLCVHeuristic()), problem);
 
         System.out.println("\n=== Backtracking + MRV + LCV ===");
         runAndPrint(new BacktrackingSolver(new StateMRVHeuristic(), new StateLCVHeuristic()), problem);
