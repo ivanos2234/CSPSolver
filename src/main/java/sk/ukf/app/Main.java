@@ -2,7 +2,6 @@ package sk.ukf.app;
 
 import sk.ukf.heuristic.*;
 import sk.ukf.model.CSPProblem;
-import sk.ukf.model.CrossRoadsDangerFactory;
 import sk.ukf.model.SendMoreMoneyFactory;
 import sk.ukf.model.Variable;
 import sk.ukf.solver.*;
