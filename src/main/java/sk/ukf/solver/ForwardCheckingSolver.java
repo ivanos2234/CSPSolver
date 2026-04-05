@@ -45,16 +45,16 @@ public class ForwardCheckingSolver implements Solver {
         failedBranches = 0;
         solutionPath = new ArrayList<>();
 
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
 
         SearchState initialState = createInitialState(problem);
         boolean solved = forwardCheckBacktrack(problem, initialState, solutionPath);
 
-        long end = System.currentTimeMillis();
+        long end = System.nanoTime();
 
         return new Solution(
                 new HashMap<>(initialState.getAssignment()),
-                end - start,
+                (end - start) / 1_000_000.0,
                 recursiveCalls,
                 backtracks,
                 solved,

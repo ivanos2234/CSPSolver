@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class Solution {
     private final Map<Variable, Integer> assignment;
-    private final long timeMillis;
+    private final double timeMillis;
     private final long recursiveCalls;
     private final long backtracks;
     private final boolean solved;
@@ -20,7 +20,7 @@ public class Solution {
     private final long jacopMaximumDepth;
 
     public Solution(Map<Variable, Integer> assignment,
-                    long timeMillis,
+                    double timeMillis,
                     long recursiveCalls,
                     long backtracks,
                     boolean solved,
@@ -47,7 +47,7 @@ public class Solution {
         return assignment;
     }
 
-    public long getTimeMillis() {
+    public double getTimeMillis() {
         return timeMillis;
     }
 

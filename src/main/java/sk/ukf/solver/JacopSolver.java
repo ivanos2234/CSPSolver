@@ -19,7 +19,6 @@ public class JacopSolver implements Solver {
 
     @Override
     public Solution solve(sk.ukf.model.CSPProblem problem) {
-        long start = System.currentTimeMillis();
 
         Store store = new Store();
 
@@ -82,14 +81,16 @@ public class JacopSolver implements Solver {
         SelectChoicePoint<IntVar> select =
                 new InputOrderSelect<>(store, letters, new IndomainMin<>());
 
+        long start = System.nanoTime();
+
         boolean solved = search.labeling(store, select);
 
-        long end = System.currentTimeMillis();
+        long end = System.nanoTime();
 
         if (!solved) {
             return new Solution(
                     new HashMap<>(),
-                    end - start,
+                    (end - start) / 1_000_000.0,
                     0,
                     search.getBacktracks(),
                     false,
@@ -124,7 +125,7 @@ public class JacopSolver implements Solver {
 
         return new Solution(
                 assignment,
-                end - start,
+                (end - start) / 1_000_000.0,
                 0,
                 search.getBacktracks(),
                 true,
