@@ -228,7 +228,7 @@ public class MainApp extends Application {
             } else {
                 stats += "Recursive calls: " + solution.getRecursiveCalls() + "\n";
                 stats += "Backtracks: " + solution.getBacktracks() + "\n";
-                stats += "Failed branches: " + solution.getFailedBranches() + "\n";
+                stats += "Failed nodes: " + solution.getFailedBranches() + "\n";
             }
 
             stats += "Equation: " + send + " + " + more + " = " + money;
@@ -573,7 +573,7 @@ public class MainApp extends Application {
             } else {
                 stats += "Recursive calls: " + solution.getRecursiveCalls() + "\n";
                 stats += "Backtracks: " + solution.getBacktracks() + "\n";
-                stats += "Failed branches: " + solution.getFailedBranches() + "\n";
+                stats += "Failed nodes: " + solution.getFailedBranches() + "\n";
             }
 
             statsLabel.setText(stats);
