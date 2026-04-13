@@ -12,6 +12,10 @@ Program umožňuje:
 - sledovať štatistiky riešenia
 - porovnávať viac konfigurácií vedľa seba
 
+<p align="center">
+  <img src="GUIMainScene.png" alt="GUIMainScene">
+</p>
+
 ## Implementované Solvery
 
 V aplikácii sú implementované tieto metódy riešenia:
@@ -42,6 +46,10 @@ Pri spustení aplikácia zobrazuje:
 - poradie priraďovania jednotlivých premenných
 
 Porovnávací režim umožňuje spúšťať viac kombinácií solverov a heuristík vedľa seba.
+
+<p align="center">
+  <img src="GUIComparisonScene.png" alt="GUIMainScene">
+</p>
 
 ## Spustiteľná Verzia
 
