@@ -25,6 +25,10 @@ import java.util.TreeMap;
 
 public class MainApp extends Application {
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     private final ComboBox<String> solverCombo = new ComboBox<>();
     private final ComboBox<String> variableHeuristicCombo = new ComboBox<>();
     private final ComboBox<String> valueHeuristicCombo = new ComboBox<>();
@@ -577,7 +581,6 @@ public class MainApp extends Application {
             }
 
             statsLabel.setText(stats);
-
             pathArea.clear();
             if (solution.getSolutionPath() != null) {
                 int step = 1;
